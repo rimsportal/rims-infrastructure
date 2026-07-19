@@ -1,12 +1,19 @@
 name: Terraform Apply
 
+# Runs after a PR is merged to main (or manually). The job binds to the
+# protected `dev` GitHub environment, so it PAUSES for approval before applying.
 on:
+  push:
+    branches: [main]
+    paths:
+      - "foundation/**"
+      - ".github/workflows/terraform-apply.yml"
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (Designstool)"
+        description: "Project directory name (DesignsTool)"
         required: true
-        default: "Designstool"
+        default: "DesignsTool"
         type: string
       environment:
         description: "Environment directory name (dev, qa, preprod, prod)"
@@ -21,24 +28,25 @@ permissions:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    concurrency: terraform-${{ inputs.project }}-${{ inputs.environment }}
+    # Approval gate: this environment must have "Required reviewers" configured.
+    environment: ${{ inputs.environment || 'dev' }}
+    concurrency: terraform-${{ inputs.project || 'DesignsTool' }}-${{ inputs.environment || 'dev' }}
     env:
       TF_IN_AUTOMATION: "true"
       ARM_USE_OIDC: "true"
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      # Secrets consumed by Terraform variables (TF_VAR_*).
       TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
       TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+      PROJECT: ${{ inputs.project || 'DesignsTool' }}
+      ENVIRONMENT: ${{ inputs.environment || 'dev' }}
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
-      - name: Terraform init, validate, plan, and apply
-        working-directory: foundation/deployments/projects/${{ inputs.project }}/${{ inputs.environment }}
+      - name: Terraform init, plan, and apply
+        working-directory: foundation/deployments/projects/${{ env.PROJECT }}/${{ env.ENVIRONMENT }}
         run: |
           terraform init -input=false
-          terraform validate
           terraform plan -input=false -out=tfplan
           terraform apply -input=false -auto-approve tfplan
