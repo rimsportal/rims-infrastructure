@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (Designstool), or all"
+        description: "Project directory name (DesignsTool), or all"
         required: true
         default: "all"
         type: string

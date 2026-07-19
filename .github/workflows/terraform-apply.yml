@@ -11,9 +11,9 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (Designstool)"
+        description: "Project directory name (DesignsTool)"
         required: true
-        default: "Designstool"
+        default: "DesignsTool"
         type: string
       environment:
         description: "Environment directory name (dev, qa, preprod, prod)"
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     # Approval gate: this environment must have "Required reviewers" configured.
     environment: ${{ inputs.environment || 'dev' }}
-    concurrency: terraform-${{ inputs.project || 'Designstool' }}-${{ inputs.environment || 'dev' }}
+    concurrency: terraform-${{ inputs.project || 'DesignsTool' }}-${{ inputs.environment || 'dev' }}
     env:
       TF_IN_AUTOMATION: "true"
       ARM_USE_OIDC: "true"
@@ -39,7 +39,7 @@ jobs:
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
       TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
-      PROJECT: ${{ inputs.project || 'Designstool' }}
+      PROJECT: ${{ inputs.project || 'DesignsTool' }}
       ENVIRONMENT: ${{ inputs.environment || 'dev' }}
     steps:
       - uses: actions/checkout@v4
