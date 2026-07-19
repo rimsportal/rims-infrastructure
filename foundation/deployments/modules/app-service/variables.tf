@@ -19,9 +19,9 @@ variable "tags" {
 variable "app_service" {
   description = "App Service (Linux, Node.js) configuration."
   type = object({
-    app_name          = string                    # globally unique web app name
-    service_plan_name = string                    # name of the App Service Plan
-    sku_name          = string                    # e.g. B1, P1v3
+    app_name          = string # globally unique web app name
+    service_plan_name = string # name of the App Service Plan
+    sku_name          = string # e.g. B1, P1v3
     node_version      = optional(string, "20-lts")
     always_on         = optional(bool, true)
     https_only        = optional(bool, true)

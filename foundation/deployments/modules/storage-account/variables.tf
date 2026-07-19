@@ -18,9 +18,9 @@ variable "tags" {
 variable "storage" {
   description = "Storage account configuration."
   type = object({
-    account_name     = string                             # globally unique, 3-24 lowercase alphanumeric
+    account_name     = string # globally unique, 3-24 lowercase alphanumeric
     account_tier     = optional(string, "Standard")
-    replication_type = optional(string, "LRS")            # LRS, GRS, ...
+    replication_type = optional(string, "LRS") # LRS, GRS, ...
     min_tls_version  = optional(string, "TLS1_2")
     containers       = optional(list(string), ["inspection-images", "generated-pdfs"])
   })

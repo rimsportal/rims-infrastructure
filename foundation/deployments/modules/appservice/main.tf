@@ -30,19 +30,19 @@ resource "azurerm_linux_web_app" "linux_web_app" {
   }
 
   app_settings = {
-    WEBSITE_NODE_DEFAULT_VERSION      = var.website_node_default_version
-    SCM_DO_BUILD_DURING_DEPLOYMENT    = var.scm_do_build_during_deployment
-    PORT                              = var.port
-    NODE_ENV                          = var.node_env
+    WEBSITE_NODE_DEFAULT_VERSION   = var.website_node_default_version
+    SCM_DO_BUILD_DURING_DEPLOYMENT = var.scm_do_build_during_deployment
+    PORT                           = var.port
+    NODE_ENV                       = var.node_env
 
-    DATABASE_URL                      = var.database_url
-    JWT_SECRET                        = var.jwt_secret
-    JWT_EXPIRES_IN                    = var.jwt_expires_in
-    JWT_ISSUER                        = var.jwt_issuer
+    DATABASE_URL   = var.database_url
+    JWT_SECRET     = var.jwt_secret
+    JWT_EXPIRES_IN = var.jwt_expires_in
+    JWT_ISSUER     = var.jwt_issuer
 
-    AZURE_STORAGE_CONNECTION_STRING   = var.storage_connection_string
-    AZURE_IMAGES_CONTAINER            = var.images_container
-    AZURE_PDFS_CONTAINER              = var.pdfs_container
+    AZURE_STORAGE_CONNECTION_STRING = var.storage_connection_string
+    AZURE_IMAGES_CONTAINER          = var.images_container
+    AZURE_PDFS_CONTAINER            = var.pdfs_container
   }
 
   tags = var.tags
