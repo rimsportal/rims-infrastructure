@@ -1,0 +1,61 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project directory name (Designstool), or all"
+        required: true
+        default: "all"
+        type: string
+      environment:
+        description: "Environment directory name (dev, qa, preprod, prod), or all"
+        required: true
+        default: "all"
+        type: string
+
+permissions:
+  id-token: write # required for Azure OIDC login
+  contents: read
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    environment: destroy
+    concurrency: terraform-destroy
+    env:
+      TF_IN_AUTOMATION: "true"
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Destroy selected infrastructure
+        shell: bash
+        env:
+          PROJECT: ${{ inputs.project }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+          root="foundation/deployments/projects"
+          mapfile -t projects < <(find "$root" -mindepth 1 -maxdepth 1 -type d | sort)
+          targets=()
+          for project_dir in "${projects[@]}"; do
+            project_name="$(basename "$project_dir")"
+            [[ "$PROJECT" == "all" || "$PROJECT" == "$project_name" ]] || continue
+            while IFS= read -r environment_dir; do
+              environment_name="$(basename "$environment_dir")"
+              [[ "$ENVIRONMENT" == "all" || "$ENVIRONMENT" == "$environment_name" ]] || continue
+              targets+=("$environment_dir")
+            done < <(find "$project_dir" -mindepth 1 -maxdepth 1 -type d | sort)
+          done
+          [[ ${#targets[@]} -gt 0 ]] || { echo "No matching Terraform environments found."; exit 1; }
+          for target in "${targets[@]}"; do
+            echo "Destroying $target"
+            terraform -chdir="$target" init -input=false
+            terraform -chdir="$target" destroy -input=false -auto-approve
+          done

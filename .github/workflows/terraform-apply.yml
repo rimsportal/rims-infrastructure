@@ -1,0 +1,44 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "Project directory name (Designstool)"
+        required: true
+        default: "Designstool"
+        type: string
+      environment:
+        description: "Environment directory name (dev, qa, preprod, prod)"
+        required: true
+        default: "dev"
+        type: string
+
+permissions:
+  id-token: write # required for Azure OIDC login
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency: terraform-${{ inputs.project }}-${{ inputs.environment }}
+    env:
+      TF_IN_AUTOMATION: "true"
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      # Secrets consumed by Terraform variables (TF_VAR_*).
+      TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
+      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform init, validate, plan, and apply
+        working-directory: foundation/deployments/projects/${{ inputs.project }}/${{ inputs.environment }}
+        run: |
+          terraform init -input=false
+          terraform validate
+          terraform plan -input=false -out=tfplan
+          terraform apply -input=false -auto-approve tfplan

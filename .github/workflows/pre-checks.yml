@@ -1,0 +1,45 @@
+name: Terraform Pre-checks
+
+on:
+  pull_request:
+    paths:
+      - "foundation/**"
+      - ".github/workflows/pre-checks.yml"
+  push:
+    branches: [main]
+    paths:
+      - "foundation/**"
+      - ".github/workflows/pre-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  fmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Check Terraform formatting
+        run: terraform -chdir=foundation fmt -check -recursive
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - name: Initialize and run TFLint
+        run: |
+          tflint --init
+          tflint --recursive foundation
+
+  kics-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run KICS scan
+        uses: checkmarx/kics-github-action@v2
+        with:
+          path: foundation
+          output_path: results
+          output_formats: sarif
