@@ -1,21 +1,47 @@
 # Creates/updates GitHub OIDC federated credentials on the RIMS-Deployment app
 # so GitHub Actions can authenticate to Azure WITHOUT a client secret.
 #
-# This repo issues the "immutable ID" style OIDC subject, e.g.
-#   repo:SharadDevOps@150069621/rims-infrastructure@1305538121:pull_request
-# so the credential subjects below must include those numeric IDs.
+# This tenant issues the "immutable ID" style OIDC subject, e.g.
+#   repo:rimsportal@<ORG_ID>/rims-infrastructure@<REPO_ID>:pull_request
+# so the credential subjects must include the numeric org and repo IDs. Those IDs
+# change whenever the org or repo is recreated, so the script reads them live from
+# the GitHub API instead of hardcoding them.
 #
 # Run in PowerShell, logged in as someone who can manage the app registration:
 #   az login
 #   .\setup-oidc.ps1
+#
+# For a PRIVATE repo, the repo-id lookup needs a token. Provide one first:
+#   $env:GITHUB_TOKEN = "ghp_..."   # a PAT with repo read access
+# (Public repos work without a token.)
 
 $ErrorActionPreference = "Stop"
 
 $APP_ID = "80e046d2-a6e6-4ff0-8b2a-89de6a5ba658"   # RIMS-Deployment
 
-# Owner/repo with their numeric IDs, exactly as GitHub presents them in the
-# OIDC `sub` claim. Owner id = 150069621, repo id = 1305538121.
-$OWNER_REPO = "SharadDevOps@150069621/rims-infrastructure@1305538121"
+# GitHub owner (org) and repository names.
+$OWNER = "rimsportal"
+$REPO  = "rims-infrastructure"
+
+# Resolve numeric IDs from the GitHub API and build the immutable-ID subject
+# prefix: "<OWNER>@<ORG_ID>/<REPO>@<REPO_ID>".
+function Get-GitHubJson($url) {
+  $headers = @{ "User-Agent" = "rims-setup-oidc"; "Accept" = "application/vnd.github+json" }
+  if ($env:GITHUB_TOKEN) { $headers["Authorization"] = "Bearer $($env:GITHUB_TOKEN)" }
+  return Invoke-RestMethod -Uri $url -Headers $headers -Method Get
+}
+
+Write-Host "==> Resolving GitHub numeric IDs for $OWNER/$REPO"
+try {
+  $ownerId = (Get-GitHubJson "https://api.github.com/users/$OWNER").id
+  $repoId  = (Get-GitHubJson "https://api.github.com/repos/$OWNER/$REPO").id
+} catch {
+  throw "Could not read GitHub IDs. If the repo is private, set `$env:GITHUB_TOKEN to a PAT with repo read access, then re-run. Underlying error: $($_.Exception.Message)"
+}
+if (-not $ownerId -or -not $repoId) { throw "GitHub returned empty IDs for $OWNER/$REPO." }
+
+$OWNER_REPO = "$OWNER@$ownerId/$REPO@$repoId"
+Write-Host "    subject prefix: repo:$OWNER_REPO"
 
 function Set-FederatedCred($name, $subject) {
   $tmp = New-TemporaryFile
@@ -40,6 +66,9 @@ function Set-FederatedCred($name, $subject) {
 
 # Terraform Apply runs in the 'dev' GitHub environment.
 Set-FederatedCred "github-rims-infra-dev" "repo:${OWNER_REPO}:environment:dev"
+
+# Terraform Apply runs in the 'prod' GitHub environment.
+Set-FederatedCred "github-rims-infra-prod" "repo:${OWNER_REPO}:environment:prod"
 
 # Terraform Destroy runs in the 'destroy' GitHub environment.
 Set-FederatedCred "github-rims-infra-destroy" "repo:${OWNER_REPO}:environment:destroy"

@@ -8,15 +8,19 @@ terraform {
     }
   }
 
-  cloud {
-    organization = "rims"
-
-    workspaces {
-      name = "rims-core-prod-HCP"
-    }
+  # Remote state in Azure Storage, authenticated via Azure AD + GitHub OIDC
+  # (no storage account key / client secret stored anywhere).
+  backend "azurerm" {
+    resource_group_name  = "rg-rims-tfstate-prod"
+    storage_account_name = "rimstfstateprod"
+    container_name       = "tfstate-prod"
+    key                  = "designstool/prod.terraform.tfstate"
+    use_oidc             = true
+    use_azuread_auth     = true
   }
 }
 
 provider "azurerm" {
   features {}
+  use_oidc = true
 }
