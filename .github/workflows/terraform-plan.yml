@@ -13,10 +13,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, qa, preprod, prod)"
+        description: "Environment directory name (dev, prod)"
         required: true
         default: "dev"
-        type: string
+        type: choice
+        options:
+          - dev
+          - prod
 
 permissions:
   id-token: write # required for Azure OIDC login
@@ -36,9 +39,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+      # On a PR: plan BOTH dev and prod (their configs differ, so validate each).
+      # On manual dispatch: plan only the chosen environment.
       - name: Terraform init, validate, and plan
-        working-directory: foundation/deployments/projects/${{ inputs.project || 'DesignsTool' }}/${{ inputs.environment || 'dev' }}
+        shell: bash
+        env:
+          PROJECT: ${{ inputs.project || 'DesignsTool' }}
+          DISPATCH_ENV: ${{ inputs.environment }}
         run: |
-          terraform init -input=false
-          terraform validate
-          terraform plan -input=false
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            envs="$DISPATCH_ENV"
+          else
+            envs="dev prod"
+          fi
+          for e in $envs; do
+            dir="foundation/deployments/projects/$PROJECT/$e"
+            echo "::group::plan $e"
+            terraform -chdir="$dir" init -input=false
+            terraform -chdir="$dir" validate
+            terraform -chdir="$dir" plan -input=false
+            echo "::endgroup::"
+          done
