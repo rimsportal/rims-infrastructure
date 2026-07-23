@@ -9,7 +9,7 @@ on:
         default: "all"
         type: string
       environment:
-        description: "Environment directory name (dev, qa, preprod, prod), or all"
+        description: "Environment directory name (dev, prod), or all"
         required: true
         default: "all"
         type: string
@@ -34,6 +34,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+      # Mint a short-lived token from the GitHub App so `terraform init` can clone
+      # the private rims-infra-core-modules repo over HTTPS.
+      - name: Mint module-repo token
+        id: modtoken
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.MODULES_APP_ID }}
+          private-key: ${{ secrets.MODULES_APP_PRIVATE_KEY }}
+          owner: rimsportal
+          repositories: rims-infra-core-modules
+      - name: Authenticate to private module repo
+        run: git config --global url."https://x-access-token:${{ steps.modtoken.outputs.token }}@github.com/".insteadOf "https://github.com/"
       - name: Destroy selected infrastructure
         shell: bash
         env:

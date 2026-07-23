@@ -1,13 +1,9 @@
 name: Terraform Apply
 
-# Runs after a PR is merged to main (or manually). The job binds to the
-# protected `dev` GitHub environment, so it PAUSES for approval before applying.
+# Manual only. Apply never runs on push/merge — you dispatch it explicitly and
+# choose the environment. The job binds to that GitHub environment, so it PAUSES
+# for approval (if the environment has a required reviewer) before applying.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "foundation/**"
-      - ".github/workflows/terraform-apply.yml"
   workflow_dispatch:
     inputs:
       project:
@@ -16,10 +12,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, qa, preprod, prod)"
+        description: "Environment directory name (dev, prod)"
         required: true
         default: "dev"
-        type: string
+        type: choice
+        options:
+          - dev
+          - prod
 
 permissions:
   id-token: write # required for Azure OIDC login
@@ -44,6 +43,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+      # Mint a short-lived token from the GitHub App so `terraform init` can clone
+      # the private rims-infra-core-modules repo over HTTPS.
+      - name: Mint module-repo token
+        id: modtoken
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.MODULES_APP_ID }}
+          private-key: ${{ secrets.MODULES_APP_PRIVATE_KEY }}
+          owner: rimsportal
+          repositories: rims-infra-core-modules
+      - name: Authenticate to private module repo
+        run: git config --global url."https://x-access-token:${{ steps.modtoken.outputs.token }}@github.com/".insteadOf "https://github.com/"
       - name: Terraform init, plan, and apply
         working-directory: foundation/deployments/projects/${{ env.PROJECT }}/${{ env.ENVIRONMENT }}
         run: |
