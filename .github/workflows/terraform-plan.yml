@@ -39,6 +39,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
+      # Mint a short-lived token from the GitHub App so `terraform init` can clone
+      # the private rims-infra-core-modules repo over HTTPS.
+      - name: Mint module-repo token
+        id: modtoken
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.MODULES_APP_ID }}
+          private-key: ${{ secrets.MODULES_APP_PRIVATE_KEY }}
+          owner: rimsportal
+          repositories: rims-infra-core-modules
+      - name: Authenticate to private module repo
+        run: git config --global url."https://x-access-token:${{ steps.modtoken.outputs.token }}@github.com/".insteadOf "https://github.com/"
       # On a PR: plan BOTH dev and prod (their configs differ, so validate each).
       # On manual dispatch: plan only the chosen environment.
       - name: Terraform init, validate, and plan
