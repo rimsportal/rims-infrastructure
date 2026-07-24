@@ -30,7 +30,6 @@ app_service = {
     "NODE_ENV"                       = "development"
     "JWT_EXPIRES_IN"                 = "12h"
     "JWT_ISSUER"                     = "rims-auth"
-    "STATIC_OTP"                     = "123456"
     "AZURE_IMAGES_CONTAINER"         = "inspection-images"
     "AZURE_PDFS_CONTAINER"           = "generated-pdfs"
   }
