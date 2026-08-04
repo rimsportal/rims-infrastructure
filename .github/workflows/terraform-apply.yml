@@ -12,12 +12,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, prod)"
+        description: "Environment directory name (dev, qa, prod)"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
+          - qa
           - prod
 
 permissions:

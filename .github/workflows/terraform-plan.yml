@@ -13,12 +13,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, prod)"
+        description: "Environment directory name (dev, qa, prod)"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
+          - qa
           - prod
 
 permissions:
@@ -63,7 +64,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             envs="$DISPATCH_ENV"
           else
-            envs="dev prod"
+            envs="dev qa prod"
           fi
           for e in $envs; do
             dir="foundation/deployments/projects/$PROJECT/$e"
