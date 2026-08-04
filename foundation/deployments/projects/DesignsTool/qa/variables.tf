@@ -112,3 +112,25 @@ variable "storage" {
     containers       = optional(list(string), ["inspection-images", "generated-pdfs"])
   })
 }
+
+# Azure Container Registry configuration (non-secret), from terraform.tfvars.
+# The backend Docker image is pushed here and pulled by the App Service via a
+# system-assigned managed identity (AcrPull).
+variable "container_registry" {
+  description = "Azure Container Registry configuration object."
+  type = object({
+    name          = string
+    sku           = optional(string, "Basic")
+    admin_enabled = optional(bool, false)
+  })
+}
+
+# Backend container image to run in the App Service. The registry URL is derived
+# from the container_registry module output, so only name and tag live here.
+variable "container_image" {
+  description = "Backend container image (repository name and tag) to deploy."
+  type = object({
+    image_name = string
+    image_tag  = optional(string, "latest")
+  })
+}

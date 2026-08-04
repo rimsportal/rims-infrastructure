@@ -37,3 +37,13 @@ output "storage_blob_endpoint" {
   description = "Primary blob endpoint."
   value       = module.storage.primary_blob_endpoint
 }
+
+output "container_registry_name" {
+  description = "Name of the Azure Container Registry."
+  value       = module.container_registry.name
+}
+
+output "container_registry_login_server" {
+  description = "Login server for the Azure Container Registry (docker push/pull target)."
+  value       = module.container_registry.login_server
+}
