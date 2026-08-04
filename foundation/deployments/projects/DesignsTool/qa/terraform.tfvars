@@ -21,7 +21,8 @@ app_service = {
   https_only        = true
   ftps_state        = "Disabled"
   health_check_path = "/api/health"
-  app_command_line  = "node src/server.js"
+  # Empty for container deployments — the image's own CMD/ENTRYPOINT runs.
+  app_command_line = ""
 
   app_settings = {
     "WEBSITE_NODE_DEFAULT_VERSION"   = "~20"
@@ -58,4 +59,21 @@ storage = {
   replication_type = "LRS"
   min_tls_version  = "TLS1_2"
   containers       = ["inspection-images", "generated-pdfs"]
+}
+
+# Azure Container Registry that hosts the backend Docker image. name must be
+# globally unique, 5-24 alphanumeric chars. admin_enabled stays false — the App
+# Service pulls via its managed identity (AcrPull), no registry credentials.
+container_registry = {
+  name          = "rimsdtoolqaacr"
+  sku           = "Basic"
+  admin_enabled = false
+}
+
+# Backend image to run in the App Service. Push this repository:tag to the ACR
+# above (via your build pipeline); the App Service pulls it on start. The
+# registry URL is wired automatically from the container_registry module.
+container_image = {
+  image_name = "designstool-qa-api"
+  image_tag  = "latest"
 }

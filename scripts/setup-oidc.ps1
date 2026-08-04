@@ -74,6 +74,9 @@ Start-Sleep -Seconds 8
 # Terraform Apply runs in the 'dev' GitHub environment.
 Set-Cred "gh-fc-rp-ri-env-dev" "repo:${OWNER_REPO}:environment:dev"
 
+# Terraform Apply runs in the 'qa' GitHub environment.
+Set-Cred "gh-fc-rp-ri-env-qa" "repo:${OWNER_REPO}:environment:qa"
+
 # Terraform Apply runs in the 'prod' GitHub environment.
 Set-Cred "gh-fc-rp-ri-env-prod" "repo:${OWNER_REPO}:environment:prod"
 
