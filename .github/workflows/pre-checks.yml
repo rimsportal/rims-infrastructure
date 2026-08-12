@@ -2,14 +2,12 @@ name: Terraform Pre-checks
 
 on:
   pull_request:
-    paths:
-      - "foundation/**"
-      - ".github/workflows/pre-checks.yml"
   push:
     branches: [main]
     paths:
       - "foundation/**"
       - ".github/workflows/pre-checks.yml"
+
 
 permissions:
   contents: read
