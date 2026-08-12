@@ -1,14 +1,14 @@
 data "azurerm_client_config" "current" {}
 
 module "resource_group" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//resource-group?ref=v0.2.1"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//resource-group?ref=v0.3.0"
   resource_group_name = local.resource_group_name
   location            = var.location
   tags                = local.tags
 }
 
 module "postgres" {
-  source                 = "git::https://github.com/rimsportal/rims-infra-core-modules.git//postgresql-flexible-server?ref=v0.2.1"
+  source                 = "git::https://github.com/rimsportal/rims-infra-core-modules.git//postgresql-flexible-server?ref=v0.3.0"
   location               = var.location
   resource_group_name    = module.resource_group.resource_group_name
   tags                   = local.tags
@@ -17,7 +17,7 @@ module "postgres" {
 }
 
 module "storage" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//storage-account?ref=v0.2.1"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//storage-account?ref=v0.3.0"
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
   tags                = local.tags
@@ -25,7 +25,7 @@ module "storage" {
 }
 
 module "key_vault" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//key-vault?ref=v0.2.1"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//key-vault?ref=v0.3.0"
   key_vault_name      = local.key_vault_name
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
@@ -41,7 +41,7 @@ module "key_vault" {
 }
 
 module "app_service" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//app-service?ref=v0.2.1"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//app-service?ref=v0.3.0"
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
   tags                = local.tags
