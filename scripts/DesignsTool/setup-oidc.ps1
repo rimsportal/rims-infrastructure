@@ -89,6 +89,10 @@ Set-Cred "gh-fc-rp-ri-pr" "repo:${OWNER_REPO}:pull_request"
 # Terraform Plan run MANUALLY (workflow_dispatch) on the main branch.
 Set-Cred "gh-fc-rp-ri-branch-main" "repo:${OWNER_REPO}:ref:refs/heads/main"
 
+# Terraform Plan run MANUALLY (workflow_dispatch) on feature branch new/module/keyvault.
+Set-Cred "gh-fc-rp-ri-branch-keyvault" "repo:${OWNER_REPO}:ref:refs/heads/new/module/keyvault"
+
 Write-Host ""
 Write-Host "Done. Credentials follow gh-fc-rp-ri-* with lowercase subjects; legacy duplicates removed."
 Write-Host "Verify: az ad app federated-credential list --id $APP_ID --query ""[].{name:name, subject:subject}"" -o table"
+
