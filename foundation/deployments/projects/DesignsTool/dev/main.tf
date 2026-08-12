@@ -1,14 +1,14 @@
 data "azurerm_client_config" "current" {}
 
 module "resource_group" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//resource-group?ref=v0.3.3"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//resource-group?ref=v0.4.0"
   resource_group_name = local.resource_group_name
   location            = var.location
   tags                = local.tags
 }
 
 module "postgres" {
-  source                 = "git::https://github.com/rimsportal/rims-infra-core-modules.git//postgresql-flexible-server?ref=v0.3.3"
+  source                 = "git::https://github.com/rimsportal/rims-infra-core-modules.git//postgresql-flexible-server?ref=v0.4.0"
   location               = var.location
   resource_group_name    = module.resource_group.resource_group_name
   tags                   = local.tags
@@ -17,7 +17,7 @@ module "postgres" {
 }
 
 module "storage" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//storage-account?ref=v0.3.3"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//storage-account?ref=v0.4.0"
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
   tags                = local.tags
@@ -25,7 +25,7 @@ module "storage" {
 }
 
 module "key_vault" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//key-vault?ref=v0.3.3"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//key-vault?ref=v0.4.0"
   key_vault_name      = local.key_vault_name
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
@@ -38,10 +38,13 @@ module "key_vault" {
     "db-password"  = var.postgres_admin_password
     "database-url" = "postgresql://${var.postgres.administrator_login}:${var.postgres_admin_password}@${module.postgres.fqdn}:5432/${module.postgres.database_name}?sslmode=require"
   }
+
+  # Grant App Service system-assigned identity access to Key Vault secrets via access policy
+  reader_principal_ids = compact([module.app_service.principal_id])
 }
 
 module "app_service" {
-  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//app-service?ref=v0.3.3"
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//app-service?ref=v0.4.0"
   location            = var.location
   resource_group_name = module.resource_group.resource_group_name
   tags                = local.tags
@@ -63,13 +66,3 @@ module "app_service" {
     }
   )
 }
-
-# Grant the web app's System-Assigned Managed Identity permission to read Key Vault secrets
-resource "azurerm_role_assignment" "kv_secrets_user" {
-  for_each             = toset(compact([module.app_service.principal_id]))
-  scope                = module.key_vault.key_vault_id
-  role_definition_name = "Key Vault Secrets User"
-  principal_id         = each.value
-}
-
-
