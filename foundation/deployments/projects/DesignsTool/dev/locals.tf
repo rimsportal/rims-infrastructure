@@ -1,5 +1,6 @@
 locals {
   resource_group_name = "${var.brand_short_name}-${var.project_short_name}-${var.environment_short_name}-${var.location_short_name}-rg"
+  key_vault_name      = "${var.brand_short_name}-${var.project_short_name}-${var.environment_short_name}-kv"
 
   tags = {
     Brand       = var.brand
@@ -8,3 +9,4 @@ locals {
     ManagedBy   = var.managed_by
   }
 }
+

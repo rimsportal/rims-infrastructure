@@ -37,3 +37,14 @@ output "storage_blob_endpoint" {
   description = "Primary blob endpoint."
   value       = module.storage.primary_blob_endpoint
 }
+
+output "key_vault_name" {
+  description = "Name of the deployed Key Vault."
+  value       = module.key_vault.key_vault_name
+}
+
+output "key_vault_uri" {
+  description = "URI of the deployed Key Vault."
+  value       = module.key_vault.vault_uri
+}
+

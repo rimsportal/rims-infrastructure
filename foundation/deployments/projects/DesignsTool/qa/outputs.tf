@@ -47,3 +47,14 @@ output "container_registry_login_server" {
   description = "Login server for the Azure Container Registry (docker push/pull target)."
   value       = module.container_registry.login_server
 }
+
+output "key_vault_name" {
+  description = "Name of the deployed Key Vault."
+  value       = module.key_vault.key_vault_name
+}
+
+output "key_vault_uri" {
+  description = "URI of the deployed Key Vault."
+  value       = module.key_vault.vault_uri
+}
+
