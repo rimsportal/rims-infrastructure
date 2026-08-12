@@ -33,6 +33,7 @@ app_service = {
     "JWT_ISSUER"                     = "rims-auth"
     "AZURE_IMAGES_CONTAINER"         = "inspection-images"
     "AZURE_PDFS_CONTAINER"           = "generated-pdfs"
+    "CORS_ALLOWED_ORIGINS"           = "https://rims-designstool-qa-api.azurewebsites.net"
   }
 }
 
