@@ -7,6 +7,14 @@ module "resource_group" {
   tags                = local.tags
 }
 
+module "container_registry" {
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//container-registry?ref=v0.4.0"
+  location            = var.location
+  resource_group_name = module.resource_group.resource_group_name
+  tags                = local.tags
+  registry            = var.container_registry
+}
+
 module "postgres" {
   source                 = "git::https://github.com/rimsportal/rims-infra-core-modules.git//postgresql-flexible-server?ref=v0.4.0"
   location               = var.location
@@ -52,6 +60,14 @@ module "app_service" {
   # Non-secret configuration comes in as a single object from terraform.tfvars.
   app_service = var.app_service
 
+  # QA runs a container image from ACR. registry_url is taken from the registry
+  # module output rather than terraform.tfvars.
+  container = {
+    image_name   = var.container_image.image_name
+    image_tag    = var.container_image.image_tag
+    registry_url = "https://${module.container_registry.login_server}"
+  }
+
   # Secret settings: DB credentials and connection string use Key Vault references
   # (@Microsoft.KeyVault(SecretUri=...)), resolved transparently at runtime by App Service
   # via its System-Assigned Managed Identity.
@@ -65,4 +81,13 @@ module "app_service" {
       AZURE_STORAGE_CONNECTION_STRING = module.storage.primary_connection_string
     }
   )
+}
+
+# Grant the web app's system-assigned managed identity permission to pull
+# images from the container registry (no registry admin credentials needed).
+resource "azurerm_role_assignment" "acr_pull" {
+  for_each             = toset(compact([module.app_service.principal_id]))
+  scope                = module.container_registry.id
+  role_definition_name = "AcrPull"
+  principal_id         = each.value
 }

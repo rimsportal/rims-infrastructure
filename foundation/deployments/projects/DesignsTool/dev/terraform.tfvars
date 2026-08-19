@@ -15,13 +15,14 @@ location_short_name    = "cin"
 app_service = {
   app_name          = "rims-designstool-dev-api"
   service_plan_name = "rims-designstool-dev-plan"
-  sku_name          = "B2"
+  sku_name          = "B1"
   node_version      = "20-lts"
   always_on         = true
   https_only        = true
   ftps_state        = "Disabled"
   health_check_path = "/api/health"
-  app_command_line  = "node src/server.js"
+  # Empty for container deployments — the image's own CMD/ENTRYPOINT runs.
+  app_command_line = ""
 
   app_settings = {
     "WEBSITE_NODE_DEFAULT_VERSION"   = "~20"
@@ -32,6 +33,7 @@ app_service = {
     "JWT_ISSUER"                     = "rims-auth"
     "AZURE_IMAGES_CONTAINER"         = "inspection-images"
     "AZURE_PDFS_CONTAINER"           = "generated-pdfs"
+    "CORS_ALLOWED_ORIGINS"           = "https://rims-designstool-dev-api.azurewebsites.net"
   }
 }
 
@@ -58,4 +60,21 @@ storage = {
   replication_type = "LRS"
   min_tls_version  = "TLS1_2"
   containers       = ["inspection-images", "generated-pdfs"]
+}
+
+# Azure Container Registry that hosts the backend Docker image. name must be
+# globally unique, 5-24 alphanumeric chars. admin_enabled stays false — the App
+# Service pulls via its managed identity (AcrPull), no registry credentials.
+container_registry = {
+  name          = "rimsdtooldevacr"
+  sku           = "Basic"
+  admin_enabled = false
+}
+
+# Backend image to run in the App Service. Push this repository:tag to the ACR
+# above (via your build pipeline); the App Service pulls it on start. The
+# registry URL is wired automatically from the container_registry module.
+container_image = {
+  image_name = "designstool-dev-api"
+  image_tag  = "latest"
 }
