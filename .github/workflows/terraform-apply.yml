@@ -12,14 +12,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, qa, prod)"
+        description: "Environment directory name (dev, qa)"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
           - qa
-          - prod
 
 permissions:
   id-token: write # required for Azure OIDC login

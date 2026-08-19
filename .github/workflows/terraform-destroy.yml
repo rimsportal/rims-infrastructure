@@ -9,7 +9,7 @@ on:
         default: "all"
         type: string
       environment:
-        description: "Environment directory name (dev, prod), or all"
+        description: "Environment directory name (dev, qa), or all"
         required: true
         default: "all"
         type: string

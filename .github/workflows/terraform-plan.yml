@@ -13,14 +13,13 @@ on:
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, qa, prod)"
+        description: "Environment directory name (dev, qa)"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
           - qa
-          - prod
 
 permissions:
   id-token: write # required for Azure OIDC login
@@ -52,7 +51,7 @@ jobs:
           repositories: rims-infra-core-modules
       - name: Authenticate to private module repo
         run: git config --global url."https://x-access-token:${{ steps.modtoken.outputs.token }}@github.com/".insteadOf "https://github.com/"
-      # On a PR: plan BOTH dev and prod (their configs differ, so validate each).
+      # On a PR: plan BOTH dev and qa (their configs differ, so validate each).
       # On manual dispatch: plan only the chosen environment.
       - name: Terraform init, validate, and plan
         shell: bash
@@ -64,7 +63,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             envs="$DISPATCH_ENV"
           else
-            envs="dev qa prod"
+            envs="dev qa"
           fi
           for e in $envs; do
             dir="foundation/deployments/projects/$PROJECT/$e"
