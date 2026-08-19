@@ -56,7 +56,7 @@ module "app_service" {
   tags                = local.tags
 
   # Non-secret configuration comes in as a single object from terraform.tfvars.
-  app_service = var.app_service
+  app_service                   = var.app_service
   public_network_access_enabled = false
 
   # DEV runs a container image from ACR. registry_url is taken from the registry
