@@ -55,7 +55,7 @@ module "app_service" {
   resource_group_name = module.resource_group.resource_group_name
   tags                = local.tags
 
-  # Non-secret configuration comes in as a single object from terraform.tfvars.
+  # Non-secrets configuration comes in as a single object from terraform.tfvars.
   app_service                   = var.app_service
   public_network_access_enabled = false
 
