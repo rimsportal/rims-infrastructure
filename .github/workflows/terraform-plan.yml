@@ -1,25 +1,23 @@
 name: Terraform Plan
 
 on:
-  pull_request:
-    paths:
-      - "foundation/**"
-      - ".github/workflows/terraform-plan.yml"
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (DesignsTool)"
+        description: "Project directory name (DesignsTool or shared)"
         required: true
         default: "DesignsTool"
         type: string
       environment:
-        description: "Environment directory name (dev, qa)"
+        description: "Environment directory name (dev, qa, dev-hub, qa-hub)"
         required: true
         default: "dev"
         type: choice
         options:
           - dev
           - qa
+          - dev-hub
+          - qa-hub
 
 permissions:
   id-token: write # required for Azure OIDC login
@@ -34,8 +32,6 @@ jobs:
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-      TF_VAR_postgres_admin_password: ${{ secrets.POSTGRES_ADMIN_PASSWORD }}
-      TF_VAR_jwt_secret: ${{ secrets.JWT_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -66,7 +62,11 @@ jobs:
             envs="dev qa"
           fi
           for e in $envs; do
-            dir="foundation/deployments/projects/$PROJECT/$e"
+            if [ "$PROJECT" = "shared" ]; then
+              dir="foundation/deployments/shared/$e"
+            else
+              dir="foundation/deployments/projects/$PROJECT/$e"
+            fi
             echo "::group::plan $e"
             n=0; until terraform -chdir="$dir" init -input=false; do
               n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi

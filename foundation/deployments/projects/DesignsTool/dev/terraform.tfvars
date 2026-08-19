@@ -41,15 +41,16 @@ app_service = {
 # password goes in the sensitive `postgres_admin_password` TFC variable.
 # Set `client_ip` to your workstation's public IP so you can run db:init/seed.
 postgres = {
-  server_name          = "rims-designstool-dev-pg"
-  database_name        = "rims"
-  administrator_login  = "rimsadmin"
-  sku_name             = "B_Standard_B1ms"
-  storage_mb           = 32768
-  postgres_version     = "16"
-  zone                 = "1"
-  allow_azure_services = true
-  client_ip            = ""
+  server_name                   = "rims-designstool-dev-pg"
+  database_name                 = "rims"
+  administrator_login           = "rimsadmin"
+  sku_name                      = "B_Standard_B1ms"
+  storage_mb                    = 32768
+  postgres_version              = "16"
+  zone                          = "1"
+  allow_azure_services          = false
+  client_ip                     = ""
+  public_network_access_enabled = false
 }
 
 # Azure Storage account for inspection images and generated PDFs.
@@ -77,4 +78,31 @@ container_registry = {
 container_image = {
   image_name = "designstool-dev-api"
   image_tag  = "latest"
+}
+
+# ----- Networking (Phase 1) -----
+# Dev spoke 10.10.0.0/24 — must not overlap the hub (10.0.0.0/24) or qa spoke.
+spoke_address_space = ["10.10.0.0/24"]
+
+spoke_subnets = {
+  snet-appsvc = {
+    cidr       = "10.10.0.0/27"
+    delegation = { service_name = "Microsoft.Web/serverFarms" }
+  }
+  snet-pe-appservice = {
+    cidr                                      = "10.10.0.32/28"
+    private_endpoint_network_policies_enabled = false
+  }
+  snet-postgres = {
+    cidr                                      = "10.10.0.48/28"
+    private_endpoint_network_policies_enabled = false
+  }
+  snet-pe-keyvault = {
+    cidr                                      = "10.10.0.64/28"
+    private_endpoint_network_policies_enabled = false
+  }
+  snet-pe-storage = {
+    cidr                                      = "10.10.0.80/28"
+    private_endpoint_network_policies_enabled = false
+  }
 }

@@ -58,3 +58,24 @@ output "key_vault_uri" {
   value       = module.key_vault.vault_uri
 }
 
+# ----- Networking (Phase 1) -----
+
+output "spoke_vnet_id" {
+  description = "Resource ID of the dev spoke VNet."
+  value       = module.spoke.vnet_id
+}
+
+output "spoke_subnet_ids" {
+  description = "Map of dev spoke subnet name to ID."
+  value       = module.spoke.subnet_ids
+}
+
+output "key_vault_private_endpoint_ip" {
+  description = "Private IP of the Key Vault private endpoint."
+  value       = module.kv_private_endpoint.private_ip_address
+}
+
+output "storage_private_endpoint_ip" {
+  description = "Private IP of the Storage (blob) private endpoint."
+  value       = module.storage_private_endpoint.private_ip_address
+}
