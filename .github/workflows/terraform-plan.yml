@@ -62,7 +62,7 @@ jobs:
             envs="dev qa"
           fi
           for e in $envs; do
-            if [ "$PROJECT" = "shared" ]; then
+            if [[ "$e" == *-hub ]]; then
               dir="foundation/deployments/shared/$e"
             else
               dir="foundation/deployments/projects/$PROJECT/$e"

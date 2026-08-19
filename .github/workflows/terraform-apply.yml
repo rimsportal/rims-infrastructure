@@ -56,7 +56,7 @@ jobs:
       - name: Authenticate to private module repo
         run: git config --global url."https://x-access-token:${{ steps.modtoken.outputs.token }}@github.com/".insteadOf "https://github.com/"
       - name: Terraform init, plan, and apply
-        working-directory: foundation/deployments/${{ env.PROJECT == 'shared' && 'shared' || format('projects/{0}', env.PROJECT) }}/${{ env.ENVIRONMENT }}
+        working-directory: foundation/deployments/${{ endsWith(env.ENVIRONMENT, '-hub') && 'shared' || format('projects/{0}', env.PROJECT) }}/${{ env.ENVIRONMENT }}
         run: |
           n=0; until terraform init -input=false; do
             n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi
