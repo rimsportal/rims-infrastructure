@@ -68,6 +68,9 @@ jobs:
           [[ ${#targets[@]} -gt 0 ]] || { echo "No matching Terraform environments found."; exit 1; }
           for target in "${targets[@]}"; do
             echo "Destroying $target"
-            terraform -chdir="$target" init -input=false
+            n=0; until terraform -chdir="$target" init -input=false; do
+              n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi
+              echo "init attempt $n failed; retrying in 15s..."; sleep 15
+            done
             terraform -chdir="$target" destroy -input=false -auto-approve
           done
