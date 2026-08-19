@@ -78,3 +78,23 @@ container_image = {
   image_name = "designstool-dev-api"
   image_tag  = "latest"
 }
+
+# ----- Networking (Phase 1) -----
+# Dev spoke 10.10.0.0/24 — must not overlap the hub (10.0.0.0/24) or qa spoke.
+spoke_address_space = ["10.10.0.0/24"]
+
+spoke_subnets = {
+  snet-appsvc = {
+    cidr       = "10.10.0.0/27"
+    delegation = { service_name = "Microsoft.Web/serverFarms" }
+  }
+  # Reserved (delegated) now for Phase 2 Postgres VNet injection; empty until then.
+  snet-postgres = {
+    cidr       = "10.10.0.32/28"
+    delegation = { service_name = "Microsoft.DBforPostgreSQL/flexibleServers" }
+  }
+  snet-privatelink = {
+    cidr                                      = "10.10.0.64/27"
+    private_endpoint_network_policies_enabled = false
+  }
+}

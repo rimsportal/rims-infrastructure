@@ -134,3 +134,27 @@ variable "container_image" {
     image_tag  = optional(string, "latest")
   })
 }
+
+# ----- Networking (Phase 1) -----
+
+# Address space for the dev spoke VNet. Must not overlap the hub or qa spoke.
+variable "spoke_address_space" {
+  description = "Address space for the dev spoke VNet."
+  type        = list(string)
+}
+
+# Subnets for the dev spoke. snet-appsvc is delegated to App Service, snet-postgres
+# is reserved (delegated) for Phase 2 Postgres injection, snet-privatelink hosts
+# the Key Vault / Storage private endpoints.
+variable "spoke_subnets" {
+  description = "Map of subnet name to configuration for the dev spoke."
+  type = map(object({
+    cidr = string
+    delegation = optional(object({
+      service_name = string
+      actions      = optional(list(string))
+    }))
+    private_endpoint_network_policies_enabled = optional(bool, true)
+    service_endpoints                         = optional(list(string), [])
+  }))
+}
