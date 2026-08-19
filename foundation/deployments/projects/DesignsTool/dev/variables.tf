@@ -86,20 +86,6 @@ variable "postgres" {
   })
 }
 
-# PostgreSQL admin password — set as a sensitive Terraform Cloud workspace
-# variable, never in terraform.tfvars.
-variable "postgres_admin_password" {
-  description = "PostgreSQL administrator password."
-  type        = string
-  sensitive   = true
-}
-
-# JWT signing secret for the backend — sensitive TFC workspace variable.
-variable "jwt_secret" {
-  description = "JWT signing secret injected into the web app."
-  type        = string
-  sensitive   = true
-}
 
 # Storage account configuration (non-secret), from terraform.tfvars.
 variable "storage" {

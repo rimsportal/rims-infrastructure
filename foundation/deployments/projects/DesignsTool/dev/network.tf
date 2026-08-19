@@ -8,7 +8,7 @@ data "terraform_remote_state" "hub" {
     resource_group_name  = "rg-rims-tfstate-dev"
     storage_account_name = "rimstfstatedev"
     container_name       = "tfstate-hub"
-    key                  = "shared/hub.terraform.tfstate"
+    key                  = "shared/dev-hub.terraform.tfstate"
     use_oidc             = true
     use_azuread_auth     = true
   }
@@ -43,6 +43,24 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
   name                  = "${var.environment_short_name}-spoke"
   resource_group_name   = data.terraform_remote_state.hub.outputs.hub_resource_group_name
   private_dns_zone_name = data.terraform_remote_state.hub.outputs.private_dns_zone_names["privatelink.blob.core.windows.net"]
+  virtual_network_id    = module.spoke.vnet_id
+  registration_enabled  = false
+  tags                  = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "appservice" {
+  name                  = "${var.environment_short_name}-spoke"
+  resource_group_name   = data.terraform_remote_state.hub.outputs.hub_resource_group_name
+  private_dns_zone_name = data.terraform_remote_state.hub.outputs.private_dns_zone_names["privatelink.azurewebsites.net"]
+  virtual_network_id    = module.spoke.vnet_id
+  registration_enabled  = false
+  tags                  = local.tags
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
+  name                  = "${var.environment_short_name}-spoke"
+  resource_group_name   = data.terraform_remote_state.hub.outputs.hub_resource_group_name
+  private_dns_zone_name = data.terraform_remote_state.hub.outputs.private_dns_zone_names["privatelink.postgres.database.azure.com"]
   virtual_network_id    = module.spoke.vnet_id
   registration_enabled  = false
   tags                  = local.tags

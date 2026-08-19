@@ -17,14 +17,15 @@ module "hub" {
 
 # Private DNS zones for the private endpoints created in the spokes. Hosted
 # centrally in the hub and linked to the hub VNet here; each spoke links itself
-# to these zones from its own stack. ACR and App Service stay public in this
-# design, so no zones are needed for them.
+# to these zones from its own stack.
 module "private_dns" {
   source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//private-dns?ref=v0.5.0"
   resource_group_name = module.resource_group.resource_group_name
   zone_names = [
     "privatelink.vaultcore.azure.net",
     "privatelink.blob.core.windows.net",
+    "privatelink.azurewebsites.net",
+    "privatelink.postgres.database.azure.com",
   ]
   vnet_links = {
     hub = module.hub.vnet_id

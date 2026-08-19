@@ -16,7 +16,7 @@ terraform {
     resource_group_name  = "rg-rims-tfstate-dev"
     storage_account_name = "rimstfstatedev"
     container_name       = "tfstate-hub"
-    key                  = "shared/hub.terraform.tfstate"
+    key                  = "shared/dev-hub.terraform.tfstate"
     use_oidc             = true
     use_azuread_auth     = true
   }

@@ -21,7 +21,7 @@ module "postgres" {
   resource_group_name    = module.resource_group.resource_group_name
   tags                   = local.tags
   postgres               = var.postgres
-  administrator_password = var.postgres_admin_password
+  administrator_password = data.azurerm_key_vault_secret.db_password.value
 }
 
 module "storage" {
@@ -40,15 +40,13 @@ module "key_vault" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   tags                = local.tags
 
-  # DB name, DB password, and full connection string stored securely in Key Vault
-  secrets = {
-    "db-name"      = module.postgres.database_name
-    "db-password"  = var.postgres_admin_password
-    "database-url" = "postgresql://${var.postgres.administrator_login}:${var.postgres_admin_password}@${module.postgres.fqdn}:5432/${module.postgres.database_name}?sslmode=require"
-  }
-
   # Grant App Service system-assigned identity access to Key Vault secrets via access policy
   reader_principal_ids = compact([module.app_service.principal_id])
+}
+
+data "azurerm_key_vault_secret" "db_password" {
+  name         = "db-password"
+  key_vault_id = module.key_vault.key_vault_id
 }
 
 module "app_service" {
@@ -59,6 +57,7 @@ module "app_service" {
 
   # Non-secret configuration comes in as a single object from terraform.tfvars.
   app_service = var.app_service
+  public_network_access_enabled = false
 
   # DEV runs a container image from ACR. registry_url is taken from the registry
   # module output rather than terraform.tfvars.
@@ -78,11 +77,12 @@ module "app_service" {
   extra_app_settings = merge(
     var.secret_app_settings,
     {
-      DB_NAME                         = "@Microsoft.KeyVault(SecretUri=${module.key_vault.secret_versionless_ids["db-name"]})"
-      DB_PASSWORD                     = "@Microsoft.KeyVault(SecretUri=${module.key_vault.secret_versionless_ids["db-password"]})"
-      DATABASE_URL                    = "@Microsoft.KeyVault(SecretUri=${module.key_vault.secret_versionless_ids["database-url"]})"
-      JWT_SECRET                      = var.jwt_secret
+      DB_NAME                         = "@Microsoft.KeyVault(SecretUri=https://${local.key_vault_name}.vault.azure.net/secrets/db-name)"
+      DB_PASSWORD                     = "@Microsoft.KeyVault(SecretUri=https://${local.key_vault_name}.vault.azure.net/secrets/db-password)"
+      DATABASE_URL                    = "@Microsoft.KeyVault(SecretUri=https://${local.key_vault_name}.vault.azure.net/secrets/database-url)"
+      JWT_SECRET                      = "@Microsoft.KeyVault(SecretUri=https://${local.key_vault_name}.vault.azure.net/secrets/jwt-secret)"
       AZURE_STORAGE_CONNECTION_STRING = module.storage.primary_connection_string
+      REPOSITORY_SECRET               = "@Microsoft.KeyVault(SecretUri=https://${local.key_vault_name}.vault.azure.net/secrets/repository-secret)"
     }
   )
 }
