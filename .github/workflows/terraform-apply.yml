@@ -58,6 +58,9 @@ jobs:
       - name: Terraform init, plan, and apply
         working-directory: foundation/deployments/projects/${{ env.PROJECT }}/${{ env.ENVIRONMENT }}
         run: |
-          terraform init -input=false
+          n=0; until terraform init -input=false; do
+            n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi
+            echo "init attempt $n failed; retrying in 15s..."; sleep 15
+          done
           terraform plan -input=false -out=tfplan
           terraform apply -input=false -auto-approve tfplan

@@ -68,7 +68,10 @@ jobs:
           for e in $envs; do
             dir="foundation/deployments/projects/$PROJECT/$e"
             echo "::group::plan $e"
-            terraform -chdir="$dir" init -input=false
+            n=0; until terraform -chdir="$dir" init -input=false; do
+              n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi
+              echo "init attempt $n failed; retrying in 15s..."; sleep 15
+            done
             terraform -chdir="$dir" validate
             terraform -chdir="$dir" plan -input=false
             echo "::endgroup::"
