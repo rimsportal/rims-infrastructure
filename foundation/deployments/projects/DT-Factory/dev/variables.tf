@@ -75,6 +75,11 @@ variable "api_access_scope_id" {
   type        = string
 }
 
+variable "api_entra_application_object_id" {
+  description = "Object ID of the existing DT Factory API application registration."
+  type        = string
+}
+
 variable "mobile_public_redirect_uris" {
   description = "Public-client redirect URIs shared by the mobile registrations until platform-specific package metadata is available."
   type        = set(string)

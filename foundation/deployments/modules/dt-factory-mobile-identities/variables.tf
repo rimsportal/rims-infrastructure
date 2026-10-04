@@ -13,6 +13,11 @@ variable "api_client_id" {
   type        = string
 }
 
+variable "api_application_object_id" {
+  description = "Object ID of the existing DT Factory API application registration."
+  type        = string
+}
+
 variable "api_access_scope_id" {
   description = "ID of the access_as_user delegated permission exposed by the DT Factory API."
   type        = string

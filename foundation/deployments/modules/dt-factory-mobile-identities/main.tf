@@ -11,10 +11,6 @@ terraform {
 
 data "azuread_client_config" "current" {}
 
-data "azuread_application" "api" {
-  client_id = var.api_client_id
-}
-
 locals {
   applications = {
     supervisor = "${var.application_name_prefix}-SUPERVISOR-MOBILE-${upper(var.environment)}"
@@ -57,7 +53,7 @@ resource "azuread_service_principal" "mobile" {
 resource "azuread_application_pre_authorized" "mobile" {
   for_each = azuread_application.mobile
 
-  application_id       = data.azuread_application.api.id
+  application_id       = "/applications/${var.api_application_object_id}"
   authorized_client_id = each.value.client_id
   permission_ids       = [var.api_access_scope_id]
 }
