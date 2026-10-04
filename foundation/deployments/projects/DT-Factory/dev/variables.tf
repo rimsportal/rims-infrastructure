@@ -70,6 +70,16 @@ variable "api_entra_client_id" {
   type        = string
 }
 
+variable "api_access_scope_id" {
+  description = "ID of the access_as_user delegated permission exposed by the DT Factory API."
+  type        = string
+}
+
+variable "mobile_public_redirect_uris" {
+  description = "Public-client redirect URIs shared by the mobile registrations until platform-specific package metadata is available."
+  type        = set(string)
+}
+
 variable "alert_emails" {
   description = "Email addresses that receive budget and operational alerts."
   type        = set(string)

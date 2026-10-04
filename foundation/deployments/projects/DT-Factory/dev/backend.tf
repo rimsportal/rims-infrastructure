@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.10"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.6"
@@ -26,4 +30,9 @@ provider "azurerm" {
   features {}
   use_oidc            = true
   storage_use_azuread = true
+}
+
+provider "azuread" {
+  tenant_id = var.entra_tenant_id
+  use_oidc  = true
 }

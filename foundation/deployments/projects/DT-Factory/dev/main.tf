@@ -29,3 +29,13 @@ module "factory" {
   key_vault_public_network_access_enabled = true
   storage_public_network_access_enabled   = true
 }
+
+module "mobile_identities" {
+  source = "../../../modules/dt-factory-mobile-identities"
+
+  environment             = var.environment_short_name
+  api_client_id           = var.api_entra_client_id
+  api_access_scope_id     = var.api_access_scope_id
+  public_redirect_uris    = var.mobile_public_redirect_uris
+  application_name_prefix = "RIMS-DT-FACTORY"
+}
