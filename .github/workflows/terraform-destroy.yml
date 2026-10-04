@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (DesignsTool), or all"
+        description: "Project directory name (DesignsTool or DT-Factory), shared, or all"
         required: true
         default: "all"
         type: string
@@ -27,8 +27,11 @@ jobs:
       TF_IN_AUTOMATION: "true"
       ARM_USE_OIDC: "true"
       ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      RIMS_ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      DT_FACTORY_ARM_CLIENT_ID: ${{ vars.DT_FACTORY_AZURE_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_web_entra_client_secret: "not-used-during-destroy"
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -75,6 +78,11 @@ jobs:
           [[ ${#targets[@]} -gt 0 ]] || { echo "No matching Terraform environments found."; exit 1; }
           for target in "${targets[@]}"; do
             echo "Destroying $target"
+            if [[ "$target" == */projects/DT-Factory/* ]]; then
+              export ARM_CLIENT_ID="$DT_FACTORY_ARM_CLIENT_ID"
+            else
+              export ARM_CLIENT_ID="$RIMS_ARM_CLIENT_ID"
+            fi
             n=0; until terraform -chdir="$target" init -input=false; do
               n=$((n+1)); if [ "$n" -ge 3 ]; then echo "init failed after $n attempts"; exit 1; fi
               echo "init attempt $n failed; retrying in 15s..."; sleep 15
