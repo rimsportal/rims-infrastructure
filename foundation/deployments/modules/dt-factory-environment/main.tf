@@ -252,7 +252,9 @@ module "api_app" {
   cors = {
     allowed_origins = ["https://${local.prefix}-web-${var.name_suffix}.azurewebsites.net"]
   }
-  tags = local.tags
+  tags = merge(local.tags, {
+    "hidden-link: /app-insights-resource-id" = replace(module.monitoring.application_insights_id, "Microsoft.Insights", "microsoft.insights")
+  })
 }
 
 resource "azurerm_role_assignment" "api_key_vault_secrets_user" {
