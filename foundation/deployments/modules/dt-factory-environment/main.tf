@@ -241,6 +241,7 @@ module "api_app" {
       RATE_LIMIT_ENABLED                         = "true"
       RATE_LIMIT_WINDOW_S                        = "60"
       RATE_LIMIT_MAX                             = "120"
+      WEBSITES_CONTAINER_START_TIME_LIMIT        = "600"
     }
   }
   auth_settings = {
