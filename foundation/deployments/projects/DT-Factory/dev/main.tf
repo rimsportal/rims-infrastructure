@@ -40,3 +40,8 @@ module "mobile_identities" {
   public_redirect_uris      = var.mobile_public_redirect_uris
   application_name_prefix   = "RIMS-DT-FACTORY"
 }
+
+import {
+  to = module.factory.azurerm_role_assignment.web_key_vault_secrets_user
+  id = "/subscriptions/59e1c26e-b22d-451a-b802-231f712f10b4/resourceGroups/rg-dt-factory-dev/providers/Microsoft.KeyVault/vaults/kv-dtf-dev-001/providers/Microsoft.Authorization/roleAssignments/b280946f-c88f-4597-936c-aa096b4db6b5"
+}
