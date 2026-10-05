@@ -264,6 +264,12 @@ resource "azurerm_role_assignment" "api_key_vault_secrets_user" {
   principal_id         = module.api_app.principal_id
 }
 
+resource "azurerm_role_assignment" "web_key_vault_secrets_user" {
+  scope                = module.key_vault.key_vault_id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = module.web_app.principal_id
+}
+
 resource "azurerm_role_assignment" "api_blob_contributor" {
   scope                = module.storage.storage_account_id
   role_definition_name = "Storage Blob Data Contributor"
