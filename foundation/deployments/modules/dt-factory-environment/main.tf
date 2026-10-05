@@ -197,6 +197,7 @@ module "web_app" {
     sku_name          = var.app_service_plan_sku
     always_on         = var.environment == "prod"
     health_check_path = "/health"
+    app_command_line  = "npm start"
     app_settings = {
       APPLICATIONINSIGHTS_CONNECTION_STRING      = module.monitoring.connection_string
       ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
@@ -227,11 +228,17 @@ module "api_app" {
     sku_name          = var.app_service_plan_sku
     always_on         = var.environment == "prod"
     health_check_path = "/health"
+    app_command_line  = "npm start"
     app_settings = {
       APPLICATIONINSIGHTS_CONNECTION_STRING      = module.monitoring.connection_string
       ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
+      AUTH_DISABLED                              = "false"
+      AZURE_API_CLIENT_ID                        = var.api_entra_client_id
       AZURE_KEY_VAULT_URI                        = module.key_vault.vault_uri
       AZURE_STORAGE_ACCOUNT_NAME                 = module.storage.account_name
+      AZURE_STORAGE_CONTAINER                    = "project-documents"
+      AZURE_TENANT_ID                            = var.entra_tenant_id
+      CORS_ORIGINS                               = "https://${local.prefix}-web-${var.name_suffix}.azurewebsites.net"
       DB_HOST                                    = module.postgresql.fqdn
       DB_PORT                                    = "5432"
       DB_NAME                                    = module.postgresql.database_name
