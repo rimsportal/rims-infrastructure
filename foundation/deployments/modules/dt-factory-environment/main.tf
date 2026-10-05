@@ -197,7 +197,7 @@ module "web_app" {
     sku_name          = var.app_service_plan_sku
     always_on         = var.environment == "prod"
     health_check_path = "/health"
-    app_command_line  = "npm start"
+    app_command_line  = "node server.mjs"
     app_settings = {
       APPLICATIONINSIGHTS_CONNECTION_STRING      = module.monitoring.connection_string
       ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
