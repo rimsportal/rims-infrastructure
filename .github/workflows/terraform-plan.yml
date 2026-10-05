@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: "Project directory name (DesignsTool or shared)"
+        description: "Project directory name (DesignsTool, DT-Factory, or shared)"
         required: true
         default: "DesignsTool"
         type: string
@@ -26,12 +26,14 @@ permissions:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
     env:
       TF_IN_AUTOMATION: "true"
       ARM_USE_OIDC: "true"
-      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_ID: ${{ inputs.project == 'DT-Factory' && vars.DT_FACTORY_AZURE_CLIENT_ID || secrets.ARM_CLIENT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_web_entra_client_secret: ${{ inputs.project == 'DT-Factory' && secrets.DT_FACTORY_WEB_ENTRA_CLIENT_SECRET || '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
