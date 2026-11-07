@@ -27,3 +27,8 @@ output "mobile_authentication" {
   description = "Non-secret authentication settings consumed by both mobile applications."
   value       = module.mobile_identities.authentication
 }
+
+output "container_registry_login_server" {
+  description = "Registry the rims-dt-factory pipeline pushes images to."
+  value       = module.factory.container_registry_login_server
+}

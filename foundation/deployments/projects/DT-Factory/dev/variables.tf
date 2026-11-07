@@ -94,3 +94,8 @@ variable "budget_start_date" {
   description = "Budget start date in RFC 3339 format."
   type        = string
 }
+
+variable "deployment_client_id" {
+  description = "Client ID of the service principal the rims-dt-factory pipeline deploys with."
+  type        = string
+}

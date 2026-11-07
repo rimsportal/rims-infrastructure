@@ -1,5 +1,10 @@
 data "azurerm_client_config" "current" {}
 
+# RIMS-DT-FACTORY-DEPLOYMENT, which the rims-dt-factory pipeline signs in as.
+data "azuread_service_principal" "deployment" {
+  client_id = var.deployment_client_id
+}
+
 module "factory" {
   source = "../../../modules/dt-factory-environment"
 
@@ -28,6 +33,12 @@ module "factory" {
   api_entra_client_id                     = var.api_entra_client_id
   key_vault_public_network_access_enabled = true
   storage_public_network_access_enabled   = true
+
+  # Containers: the registry comes first. Set use_containers to true once the
+  # rims-dt-factory pipeline has pushed the first images and switched the apps.
+  container_registry_enabled = true
+  use_containers             = false
+  deployment_principal_id    = data.azuread_service_principal.deployment.object_id
 }
 
 module "mobile_identities" {

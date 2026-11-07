@@ -13,6 +13,7 @@ web_entra_client_id             = "372b29ea-102b-41ca-a6f5-cfb83fbce341"
 api_entra_client_id             = "1c7d624c-c414-4f77-b8f9-ff0cfc42c873"
 api_entra_application_object_id = "90a0c61a-e1b8-4783-8243-93682165b036"
 api_access_scope_id             = "04e33ce5-da79-477d-b381-1c7509434762"
+deployment_client_id            = "bd4666d9-c71e-4e0a-8662-c1f055922965" # RIMS-DT-FACTORY-DEPLOYMENT
 mobile_public_redirect_uris = [
   "https://login.microsoftonline.com/common/oauth2/nativeclient"
 ]

@@ -186,6 +186,28 @@ module "monitoring" {
   tags                      = local.tags
 }
 
+# Registry for the web portal and API images built by the rims-dt-factory deploy.
+module "container_registry" {
+  count               = var.container_registry_enabled ? 1 : 0
+  source              = "git::https://github.com/rimsportal/rims-infra-core-modules.git//container-registry?ref=dba214375c44ae5f4ed9ddb94f7c1b9d58e30611"
+  resource_group_name = module.resource_group.resource_group_name
+  location            = var.location
+  registry = {
+    name = "acrdtfactory${var.environment}${replace(var.name_suffix, "/[^0-9a-z]/", "")}"
+    sku  = "Basic"
+  }
+  tags = local.tags
+}
+
+locals {
+  registry_url = var.container_registry_enabled ? "https://${module.container_registry[0].login_server}" : null
+  # Containers listen on port 8080 and do not need the shared /home storage.
+  container_app_settings = var.use_containers ? {
+    WEBSITES_PORT                       = "8080"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = "false"
+  } : {}
+}
+
 module "web_app" {
   source                = "git::https://github.com/rimsportal/rims-infra-core-modules.git//app-service?ref=dba214375c44ae5f4ed9ddb94f7c1b9d58e30611"
   resource_group_name   = module.resource_group.resource_group_name
@@ -197,14 +219,19 @@ module "web_app" {
     sku_name          = var.app_service_plan_sku
     always_on         = var.environment == "prod"
     health_check_path = "/health"
-    app_command_line  = "node server.mjs"
-    app_settings = {
+    # A container image sets its own start command.
+    app_command_line = var.use_containers ? "" : "node server.mjs"
+    app_settings = merge(local.container_app_settings, {
       APPLICATIONINSIGHTS_CONNECTION_STRING      = module.monitoring.connection_string
       ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
       API_BASE_URL                               = "https://${local.prefix}-api-${var.name_suffix}.azurewebsites.net"
       MICROSOFT_PROVIDER_AUTHENTICATION_SECRET   = "@Microsoft.KeyVault(SecretUri=${module.key_vault.vault_uri}secrets/web-entra-client-secret/)"
-    }
+    })
   }
+  container = var.use_containers ? {
+    image_name   = "dt-factory-web"
+    registry_url = local.registry_url
+  } : null
   auth_settings = {
     client_id                  = var.web_entra_client_id
     tenant_id                  = var.entra_tenant_id
@@ -228,8 +255,8 @@ module "api_app" {
     sku_name          = var.app_service_plan_sku
     always_on         = var.environment == "prod"
     health_check_path = "/health"
-    app_command_line  = "npm start"
-    app_settings = {
+    app_command_line  = var.use_containers ? "" : "npm start"
+    app_settings = merge(local.container_app_settings, {
       APPLICATIONINSIGHTS_CONNECTION_STRING      = module.monitoring.connection_string
       ApplicationInsightsAgent_EXTENSION_VERSION = "~3"
       AUTH_DISABLED                              = "false"
@@ -249,8 +276,12 @@ module "api_app" {
       RATE_LIMIT_WINDOW_S                        = "60"
       RATE_LIMIT_MAX                             = "120"
       WEBSITES_CONTAINER_START_TIME_LIMIT        = "600"
-    }
+    })
   }
+  container = var.use_containers ? {
+    image_name   = "dt-factory-api"
+    registry_url = local.registry_url
+  } : null
   auth_settings = {
     client_id              = var.api_entra_client_id
     tenant_id              = var.entra_tenant_id
@@ -275,6 +306,25 @@ resource "azurerm_role_assignment" "web_key_vault_secrets_user" {
   scope                = module.key_vault.key_vault_id
   role_definition_name = "Key Vault Secrets User"
   principal_id         = module.web_app.principal_id
+}
+
+# The apps pull their images with their own managed identities.
+resource "azurerm_role_assignment" "app_acr_pull" {
+  for_each = var.container_registry_enabled ? {
+    web = module.web_app.principal_id
+    api = module.api_app.principal_id
+  } : {}
+  scope                = module.container_registry[0].id
+  role_definition_name = "AcrPull"
+  principal_id         = each.value
+}
+
+# The deploy identity pushes new images from the rims-dt-factory pipeline.
+resource "azurerm_role_assignment" "deployment_acr_push" {
+  count                = var.container_registry_enabled ? 1 : 0
+  scope                = module.container_registry[0].id
+  role_definition_name = "AcrPush"
+  principal_id         = var.deployment_principal_id
 }
 
 resource "azurerm_role_assignment" "api_blob_contributor" {

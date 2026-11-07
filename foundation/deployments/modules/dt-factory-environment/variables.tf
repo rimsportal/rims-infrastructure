@@ -107,3 +107,29 @@ variable "storage_public_network_access_enabled" {
   description = "Whether public network access remains enabled for the storage account."
   type        = bool
 }
+
+variable "container_registry_enabled" {
+  description = "Create the container registry that the web portal and API images are pushed to."
+  type        = bool
+  default     = false
+}
+
+variable "use_containers" {
+  description = "Run the web portal and API as container images from the registry. Needs container_registry_enabled and pushed images."
+  type        = bool
+  default     = false
+  validation {
+    condition     = !var.use_containers || var.container_registry_enabled
+    error_message = "use_containers needs container_registry_enabled."
+  }
+}
+
+variable "deployment_principal_id" {
+  description = "Object ID of the deploy service principal, given AcrPush on the registry."
+  type        = string
+  default     = null
+  validation {
+    condition     = !var.container_registry_enabled || var.deployment_principal_id != null
+    error_message = "container_registry_enabled needs deployment_principal_id."
+  }
+}

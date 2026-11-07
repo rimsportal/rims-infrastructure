@@ -33,3 +33,6 @@ output "deployment_report" {
 
 output "web_managed_identity_principal_id" { value = module.web_app.principal_id }
 output "api_managed_identity_principal_id" { value = module.api_app.principal_id }
+output "container_registry_login_server" {
+  value = var.container_registry_enabled ? module.container_registry[0].login_server : null
+}
