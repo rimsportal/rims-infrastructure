@@ -18,7 +18,9 @@ module "factory" {
     future_integration = "10.20.3.0/24"
   }
 
-  app_service_plan_sku                    = "B1"
+  # The API and web containers share this plan. B1 saturated at 100% CPU
+  # during container startup and made both services intermittently unavailable.
+  app_service_plan_sku                    = "B2"
   postgres_sku_name                       = "B_Standard_B1ms"
   postgres_storage_mb                     = 32768
   postgres_backup_retention_days          = 7
