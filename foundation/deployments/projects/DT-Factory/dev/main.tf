@@ -34,10 +34,10 @@ module "factory" {
   key_vault_public_network_access_enabled = true
   storage_public_network_access_enabled   = true
 
-  # Containers: the registry comes first. Set use_containers to true once the
-  # rims-dt-factory pipeline has pushed the first images and switched the apps.
+  # The application pipeline publishes both images before switching the apps.
+  # Terraform keeps container mode as the declared steady state.
   container_registry_enabled = true
-  use_containers             = false
+  use_containers             = true
   deployment_principal_id    = data.azuread_service_principal.deployment.object_id
 }
 
